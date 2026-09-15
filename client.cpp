@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -57,16 +58,25 @@ buf_append(std::vector<uint8_t> &buf, const uint8_t *data, size_t len) {
 
 const size_t k_max_msg = 65536;
 
-// the `query` function was simply splited into `send_req` and `read_res`.
-static int32_t send_req(int fd, const uint8_t *text, size_t len) {
-    if (len > k_max_msg) {
+static int32_t send_req(int fd, const std::vector<std::string> &args) {
+    std::vector<uint8_t> payload;
+    uint32_t arg_count = static_cast<uint32_t>(args.size());
+    buf_append(payload, (const uint8_t *)&arg_count, 4);
+
+    for (const std::string &arg : args) {
+        uint32_t arg_len = static_cast<uint32_t>(arg.size());
+        buf_append(payload, (const uint8_t *)&arg_len, 4);
+        buf_append(payload, (const uint8_t *)arg.data(), arg.size());
+    }
+
+    if (payload.size() > k_max_msg) {
         return -1;
     }
 
     std::vector<uint8_t> wbuf;
-    uint32_t msg_len = htonl((uint32_t)len);
+    uint32_t msg_len = static_cast<uint32_t>(payload.size());
     buf_append(wbuf, (const uint8_t *)&msg_len, 4);
-    buf_append(wbuf, text, len);
+    buf_append(wbuf, payload.data(), payload.size());
     return write_all(fd, wbuf.data(), wbuf.size());
 }
 
@@ -87,7 +97,6 @@ static int32_t read_res(int fd) {
 
     uint32_t len = 0;
     memcpy(&len, rbuf.data(), 4);
-    len = ntohl(len);
     if (len > k_max_msg) {
         msg("too long");
         return -1;
@@ -101,8 +110,16 @@ static int32_t read_res(int fd) {
         return err;
     }
 
-    // do something
-    printf("len:%u data:%.*s\n", len, len < 100 ? len : 100, &rbuf[4]);
+    if (len < 4) {
+        msg("invalid response");
+        return -1;
+    }
+
+    uint32_t status = 0;
+    memcpy(&status, &rbuf[4], 4);
+    uint32_t data_len = len - 4;
+    printf("status:%u data:%.*s\n", status,
+           data_len < 100 ? data_len : 100, &rbuf[8]);
     return 0;
 }
 
@@ -123,7 +140,14 @@ int main() {
 
     std::string input;
     while (std::getline(std::cin, input)) {
-        if (send_req(fd, (const uint8_t *)input.data(), input.size()) != 0) {
+        std::istringstream input_stream(input);
+        std::vector<std::string> args;
+        std::string arg;
+        while (input_stream >> arg) {
+            args.push_back(arg);
+        }
+
+        if (send_req(fd, args) != 0) {
             close(fd);
             return 1;
         }

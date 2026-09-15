@@ -1,13 +1,7 @@
 #pragma once
 #include <vector>
+#include <cstdint>
+#include <iostream>
+#include <cstring>
 
-enum {
-    TAG_NIL = 0,    // nil
-    TAG_ERR = 1,    // error code + msg
-    TAG_STR = 2,    // string
-    TAG_INT = 3,    // int64
-    TAG_DBL = 4,    // double
-    TAG_ARR = 5,    // array
-};
-
-std::vector<char> command_parser(const std::vector<char> &req);
+int32_t command_parser(const uint8_t* data, size_t len, std::vector<std::string> &cmd);
