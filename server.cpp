@@ -11,8 +11,8 @@
 #include <fcntl.h>
 #include <cstring>
 
-#include "./command_parser.h"
-#include "./process_request.h"
+#include "./command_parser/command_parser.h"
+#include "./process_request/process_request.h"
 
 const int MAX_ALLOWED_MSG_SIZE = 65536;
 

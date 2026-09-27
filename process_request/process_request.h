@@ -3,10 +3,21 @@
 #include <cstdint>
 #include <string>
 #include <map>
+#include "../hashtable/hashtable.h"
 
 struct Response{
     uint32_t status = 0;
     std::vector<uint8_t>data;
+};
+
+static struct {
+    Map db;    // top-level hashtable
+} data;
+
+struct entry{
+    node ptr;
+    std::string key;
+    std::string val;
 };
 
 enum {
@@ -15,4 +26,4 @@ enum {
     RES_NX = 2,     // key not found
 };
 
-void do_request(std::vector<std::string>& cmd, Response &res);
+bool do_request(std::vector<std::string>& cmd, Response &res);
