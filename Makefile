@@ -7,11 +7,13 @@ PORT ?= 4005
 SERVER_SOURCES := server.cpp \
 	command_parser/command_parser.cpp \
 	process_request/process_request.cpp \
-	hashtable/hashtable.cpp
+	hashtable/hashtable.cpp \
+	persistence/AOF.cpp
 SERVER_HEADERS := command_parser/command_parser.h \
 	process_request/process_request.h \
 	hashtable/hashtable.h \
-	container_of/container_of.h
+	container_of/container_of.h \
+	persistence/AOF.h
 
 .PHONY: all server client run clean
 

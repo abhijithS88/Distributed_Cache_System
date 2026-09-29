@@ -11,8 +11,9 @@
 #include <fcntl.h>
 #include <cstring>
 
-#include "./command_parser/command_parser.h"
-#include "./process_request/process_request.h"
+#include "command_parser/command_parser.h"
+#include "process_request/process_request.h"
+#include "persistence/AOF.h"
 
 const int MAX_ALLOWED_MSG_SIZE = 65536;
 
@@ -63,7 +64,7 @@ Conn* handle_new_connection(int sockfd){
 
     char client_ip[INET_ADDRSTRLEN];
     if (inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip, sizeof(client_ip))) {
-        std::cout << "New client: " << client_ip << ": " << ntohs(clientaddr.sin_port) << "\n";
+        std::cout << "New client: " << client_ip << ": " << ntohs(clientaddr.sin_port) << " connected\n";
     }
 
     fd_set_nb(client_fd);
@@ -104,13 +105,18 @@ bool try_processing_one(Conn* conn){
 
     std::vector<std::string> cmd;
 
-    if(command_parser(req.data(), (size_t)(req.size()), cmd) < 0){
+    if(deserialize(req.data(), (size_t)(req.size()), cmd) < 0){
         conn->want_close = true;
         return false;
     }
 
     Response res;
-    do_request(cmd,res); 
+    bool ok = do_request(cmd,res); 
+
+    if(ok and is_write_command(cmd) and  res.status == RES_OK){
+        append_only_file(cmd);
+    }
+
     make_response(res,conn);
 
     erase_from_start(conn->incoming, 4+msg_len);
@@ -204,6 +210,8 @@ int main(int argc, char **argv){
         perror("listen failed");
         exit(1);
     }
+
+    load_aof(); // read and restore the db from appendonly.aof file
 
     std::vector<Conn *> fd2conn;
     std::vector<struct pollfd> poll_args;
