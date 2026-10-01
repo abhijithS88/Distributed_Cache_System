@@ -1,5 +1,7 @@
 Distributed Cache — Redis
+
 About Redis: https://www.youtube.com/watch?v=fmT5nlEkl3U&t=50s
+
 ABSTRACT: Redis (Remote Dictionary Server) is an in-memory key-value store widely used for
 caching, session management, real-time analytics, and message brokering. It supports data persistence,
 replication, and sharding, making it highly scalable for distributed workloads. Redis uses an asynchronous

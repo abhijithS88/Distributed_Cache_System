@@ -14,8 +14,11 @@
 #include "command_parser/command_parser.h"
 #include "process_request/process_request.h"
 #include "persistence/AOF.h"
+#include "sentinal/sentinal.h"
 
 const int MAX_ALLOWED_MSG_SIZE = 65536;
+static char* SERV_IP;
+static uint16_t SERV_PORT;
 
 struct Conn {
     int fd = -1;
@@ -113,8 +116,12 @@ bool try_processing_one(Conn* conn){
     Response res;
     bool ok = do_request(cmd,res); 
 
-    if(ok and is_write_command(cmd) and  res.status == RES_OK){
-        append_only_file(cmd);
+    if(is_master(SERV_IP, SERV_PORT)){
+
+        if(ok and is_write_command(cmd) and  res.status == RES_OK){
+            append_only_file(cmd);
+        }
+        
     }
 
     make_response(res,conn);
@@ -183,8 +190,8 @@ int main(int argc, char **argv){
         exit(1);
     }
 
-    const char *SERV_IP = argv[1];
-    uint16_t SERV_PORT = static_cast<uint16_t>(std::stoi(argv[2]));
+    SERV_IP = argv[1];
+    SERV_PORT = (uint16_t)(std::stoi(argv[2]));
 
     int sockfd;
     if( (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0){

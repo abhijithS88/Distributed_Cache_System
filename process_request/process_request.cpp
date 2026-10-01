@@ -3,14 +3,6 @@
 
 #include <new>
 
-static table db_older;
-static table db_newer;
-
-static void init_db(){
-    if(data.db.older == nullptr)data.db.older = &db_older;
-    if(data.db.newer == nullptr)data.db.newer = &db_newer;
-}
-
 static uint64_t str_hash(const uint8_t *data, size_t len) {
     uint32_t h = 0x811C9DC5;
     for (size_t i = 0; i < len; i++) {
@@ -31,7 +23,6 @@ bool do_get(std::vector<std::string> &cmd, Response &out){
         out.status = RES_ERR;
         return false;
     }
-    init_db();
     entry key{};
     key.key = cmd[1];
     key.ptr.hash_value = (int64_t)(str_hash((const uint8_t*)(key.key.data()), key.key.size()));
@@ -52,7 +43,6 @@ bool do_set(std::vector<std::string> &cmd, Response &out){
         out.status = RES_ERR;
         return false;
     }
-    init_db();
     entry key{};
     key.key = cmd[1];
     key.ptr.hash_value = (int64_t)(str_hash((const uint8_t*)(key.key.data()), key.key.size()));
@@ -88,7 +78,6 @@ bool do_del(std::vector<std::string> &cmd, Response &out){
         out.status = RES_ERR;
         return false;
     }
-    init_db();
     entry key{};
     key.key = cmd[1];
     key.ptr.hash_value = (int64_t)(str_hash((const uint8_t*)(key.key.data()), key.key.size()));

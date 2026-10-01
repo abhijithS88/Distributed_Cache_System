@@ -10,9 +10,18 @@ struct Response{
     std::vector<uint8_t>data;
 };
 
-static struct {
-    Map db;    // top-level hashtable
-} data;
+struct Database {
+    table older;
+    table newer;
+    Map db;
+
+    Database() {
+        db.older = &older;
+        db.newer = &newer;
+    }
+};
+
+static Database data;
 
 struct entry{
     node ptr;

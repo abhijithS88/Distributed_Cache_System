@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 
-const char* filename = "./persistence/appendonly.aof";
+const char* filename = "persistence/appendonly.aof";
 
 static std::string read_all_from_fd(int fd) {
     std::string data;
