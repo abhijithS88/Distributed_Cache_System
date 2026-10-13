@@ -2,6 +2,7 @@
 #include "../container_of/container_of.h"
 
 #include <new>
+#include <iostream>
 
 static uint64_t str_hash(const uint8_t *data, size_t len) {
     uint32_t h = 0x811C9DC5;
@@ -92,18 +93,23 @@ bool do_del(std::vector<std::string> &cmd, Response &out){
     return true;
 }
 
-bool do_request(std::vector<std::string> &cmd, Response &out) {
+RequestResult do_request(std::vector<std::string> &cmd, Response &out) {
+    if (cmd.size() == 1 && cmd[0] == "sync") {
+        std::cout<<"sync came"<<"\n";
+        out.status = RES_OK;
+        return RequestResult::RegisterReplica;
+    }
     if (cmd.size() == 2 && cmd[0] == "get") {
-        return do_get(cmd, out);
+        return do_get(cmd, out) ? RequestResult::Processed : RequestResult::Invalid;
     } 
     else if (cmd.size() == 3 && cmd[0] == "set") {
-        return do_set(cmd, out);
+        return do_set(cmd, out) ? RequestResult::Processed : RequestResult::Invalid;
     }
     else if (cmd.size() == 2 && cmd[0] == "del") {
-        return do_del(cmd, out);
+        return do_del(cmd, out) ? RequestResult::Processed : RequestResult::Invalid;
     } 
     else {
         out.status = RES_ERR;
-        return false;
+        return RequestResult::Invalid;
     }
 }

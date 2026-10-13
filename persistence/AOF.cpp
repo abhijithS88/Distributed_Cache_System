@@ -7,8 +7,33 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <charconv>
+#include <cstdio>
+#include <cstdint>
 
 const char* filename = "persistence/appendonly.aof";
+static std::uint64_t global_counter = 0;
+
+static bool remove_counter_prefix(std::string &line) {
+    const size_t separator = line.find(' ');
+    if (separator == std::string::npos || separator == 0) {
+        return false;
+    }
+
+    std::uint64_t counter = 0;
+    const char *begin = line.data();
+    const char *end = begin + separator;
+    const auto result = std::from_chars(begin, end, counter);
+    if (result.ec != std::errc{} || result.ptr != end) {
+        return false;
+    }
+
+    if (counter > global_counter) {
+        global_counter = counter;
+    }
+    line.erase(0, separator + 1);
+    return true;
+}
 
 static std::string read_all_from_fd(int fd) {
     std::string data;
@@ -34,7 +59,8 @@ static std::string read_all_from_fd(int fd) {
 }
 
 static std::string serialize_aof_line(const std::vector<std::string> &cmd) {
-    std::string line;
+    std::string line = std::to_string(++global_counter);
+    line += ' ';
     for (size_t i = 0; i < cmd.size(); ++i) {
         if (i != 0) {
             line += ' ';
@@ -101,6 +127,8 @@ void load_aof() {
 
         std::string line = data.substr(start, end - start);
         start = end + 1;
+
+        remove_counter_prefix(line);
 
         std::istringstream iss(line);
         std::vector<std::string> cmd;

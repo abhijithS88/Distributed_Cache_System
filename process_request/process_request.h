@@ -35,4 +35,10 @@ enum {
     RES_NX = 2,     // key not found
 };
 
-bool do_request(std::vector<std::string>& cmd, Response &res);
+enum class RequestResult {
+    Processed,
+    RegisterReplica,
+    Invalid
+};
+
+RequestResult do_request(std::vector<std::string>& cmd, Response &res);
