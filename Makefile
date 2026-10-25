@@ -9,12 +9,14 @@ SERVER_SOURCES := server.cpp \
 	process_request/process_request.cpp \
 	hashtable/hashtable.cpp \
 	persistence/AOF.cpp \
+	replication/replication.cpp \
 	sentinal/sentinal.cpp
 SERVER_HEADERS := command_parser/command_parser.h \
 	process_request/process_request.h \
 	hashtable/hashtable.h \
 	container_of/container_of.h \
 	persistence/AOF.h \
+	replication/replication.h \
 	sentinal/sentinal.h
 
 .PHONY: all server client run clean
