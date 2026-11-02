@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <map>
+#include <cstdint>
 #include "../hashtable/hashtable.h"
 
 struct Response{
@@ -38,7 +39,10 @@ enum {
 enum class RequestResult {
     Processed,
     RegisterReplica,
+    ResetDatabase,
+    ReplicatedWrite,
     Invalid
 };
 
-RequestResult do_request(std::vector<std::string>& cmd, Response &res);
+RequestResult do_request(std::vector<std::string>& cmd, Response &res, uint64_t* replication_sequence = nullptr);
+void reset_database();
